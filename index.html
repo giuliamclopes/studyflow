@@ -253,7 +253,13 @@ onAuthStateChanged(auth,async user=>{
  currentUid=user.uid;loadingCloud=true;overlay.style.display='none';
  try{const ref=doc(db,'users',user.uid,'appData','main'),snap=await getDoc(ref);
   if(snap.exists()&&snap.data().data){window.setStudyFlowData(snap.data().data)}
-  else {const local=window.getStudyFlowData();await setDoc(ref,{data:local,updatedAt:serverTimestamp()})}
+  else {
+   // A new account must never inherit data from this browser's localStorage.
+   // Existing users recover their own data from their UID-scoped Firestore document.
+   const empty={subjects:[],tasks:[],reviews:[],quizzes:[],mocks:[],settings:{weeklyGoal:20,examDate:''}};
+   window.setStudyFlowData(empty);
+   await setDoc(ref,{data:empty,updatedAt:serverTimestamp()});
+  }
   say('Dados sincronizados.');
  }catch(err){console.error(err);overlay.style.display='grid';say('Não foi possível acessar seus dados. Confira as regras do Firestore e tente novamente.');return}
  loadingCloud=false;
