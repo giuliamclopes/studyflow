@@ -247,22 +247,47 @@ toggle.addEventListener('click',()=>{creating=!creating;document.getElementById(
 form.addEventListener('submit',async e=>{e.preventDefault();submit.disabled=true;say('Aguarde…');try{if(creating)await createUserWithEmailAndPassword(auth,email.value.trim(),password.value);else await signInWithEmailAndPassword(auth,email.value.trim(),password.value)}catch(err){say(err.code==='auth/email-already-in-use'?'Este e-mail já tem uma conta. Entre nela.':err.code==='auth/invalid-credential'?'E-mail ou senha incorretos.':err.code==='auth/weak-password'?'A senha precisa ter pelo menos 6 caracteres.':err.message)}finally{submit.disabled=false}});
 document.getElementById('authReset').addEventListener('click',async()=>{if(!email.value.trim()){say('Digite seu e-mail para receber o link de recuperação.');return}try{await sendPasswordResetEmail(auth,email.value.trim());say('Enviamos um link de recuperação para seu e-mail.')}catch(err){say(err.message)}});
 document.getElementById('logoutBtn').addEventListener('click',()=>signOut(auth));
-window.studyFlowCloudSave=(data)=>{if(!currentUid||loadingCloud)return;clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await setDoc(doc(db,'users',currentUid,'appData','main'),{data,updatedAt:serverTimestamp()})}catch(err){console.error(err);say('Não foi possível sincronizar agora. Seus dados continuam neste navegador.')}},700)};
+window.studyFlowCloudSave=(nextData)=>{
+ if(!currentUid||loadingCloud)return;
+ const saveUid=currentUid;
+ const snapshot=JSON.parse(JSON.stringify(nextData));
+ clearTimeout(saveTimer);
+ saveTimer=setTimeout(async()=>{
+  // Never let a delayed save from one account write into another account.
+  if(!saveUid||currentUid!==saveUid||loadingCloud)return;
+  try{await setDoc(doc(db,'users',saveUid,'appData','main'),{data:snapshot,updatedAt:serverTimestamp()})}
+  catch(err){console.error(err);say('Não foi possível sincronizar agora. Seus dados continuam neste navegador.')}
+ },700);
+};
 onAuthStateChanged(auth,async user=>{
- if(!user){currentUid=null;overlay.style.display='grid';say('Entre ou crie sua conta para continuar.');return}
- currentUid=user.uid;loadingCloud=true;overlay.style.display='none';
- try{const ref=doc(db,'users',user.uid,'appData','main'),snap=await getDoc(ref);
-  if(snap.exists()&&snap.data().data){window.setStudyFlowData(snap.data().data)}
-  else {
-   // A new account must never inherit data from this browser's localStorage.
-   // Existing users recover their own data from their UID-scoped Firestore document.
+ // Cancel any pending write before changing the active account.
+ clearTimeout(saveTimer);saveTimer=null;
+ loadingCloud=true;
+ currentUid=null;
+ overlay.style.display='grid';
+ if(!user){loadingCloud=false;say('Entre ou crie sua conta para continuar.');return}
+ const targetUid=user.uid;
+ try{
+  const ref=doc(db,'users',targetUid,'appData','main'),snap=await getDoc(ref);
+  // Ignore a late response if the signed-in account changed while Firestore was loading.
+  if(auth.currentUser?.uid!==targetUid)return;
+  if(snap.exists()&&snap.data().data){
+   window.setStudyFlowData(snap.data().data);
+  }else{
+   // A genuinely new account starts empty; browser cache is never imported.
    const empty={subjects:[],tasks:[],reviews:[],quizzes:[],mocks:[],settings:{weeklyGoal:20,examDate:''}};
    window.setStudyFlowData(empty);
    await setDoc(ref,{data:empty,updatedAt:serverTimestamp()});
+   if(auth.currentUser?.uid!==targetUid)return;
   }
+  currentUid=targetUid;
+  loadingCloud=false;
+  overlay.style.display='none';
   say('Dados sincronizados.');
- }catch(err){console.error(err);overlay.style.display='grid';say('Não foi possível acessar seus dados. Confira as regras do Firestore e tente novamente.');return}
- loadingCloud=false;
+ }catch(err){
+  console.error(err);
+  if(auth.currentUser?.uid===targetUid){currentUid=null;loadingCloud=false;overlay.style.display='grid';say('Não foi possível acessar seus dados. Confira as regras do Firestore e tente novamente.')}
+ }
 });
 </script>
 </body></html>
