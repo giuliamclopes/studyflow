@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>StudyFlow — Seu estudo, em fluxo</title>
+<style>
+:root{--bg:#0b1220;--panel:#111c2e;--panel2:#17243a;--line:#26364e;--text:#edf3fc;--muted:#94a6bd;--accent:#72e0c0;--accent2:#7da7ff;--danger:#ff8b96;--yellow:#f4cb78;--surface:#0d1727;--radius:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select{font:inherit}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}button{cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.sidebar{background:#0e1929;border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px}.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#0b1723;font-weight:900;font-size:20px}.brand strong{font-size:19px;letter-spacing:-.5px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.5px}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:var(--muted);text-align:left;padding:12px 13px;border-radius:11px;display:flex;gap:12px;align-items:center}.nav button.active,.nav button:hover{background:var(--panel2);color:var(--text)}.nav button.active{box-shadow:inset 3px 0 var(--accent)}
+.side-note{margin-top:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--muted);font-size:12px}
+main{padding:30px clamp(18px,4vw,52px);max-width:1450px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}.eyebrow{color:var(--accent);text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:1.7px}.top h1{margin:4px 0 0;font-size:clamp(25px,4vw,34px);letter-spacing:-1px}.date{color:var(--muted);font-size:13px}
+.view{display:none}.view.active{display:block}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:19px}.stat-label{font-size:12px;color:var(--muted)}.stat-value{font-size:28px;font-weight:750;letter-spacing:-1px;margin:8px 0 1px}.stat-foot{font-size:11px;color:var(--muted)}.accent{color:var(--accent)}.blue{color:var(--accent2)}
+.two{grid-template-columns:1.25fr .75fr}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.section-head h2{font-size:17px;margin:0}.muted{color:var(--muted)}.small{font-size:12px}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 13px;border-radius:10px;font-weight:600;font-size:13px}.btn.primary{background:var(--accent);color:#0a1b22;border-color:var(--accent)}.btn.ghost{background:transparent}.btn.danger{color:var(--danger)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.task-list,.item-list{display:grid;gap:9px}.task{display:flex;align-items:center;gap:11px;background:var(--panel2);padding:12px;border-radius:12px}.task input{accent-color:var(--accent);width:17px;height:17px}.task.done .task-name{text-decoration:line-through;color:var(--muted)}.task-meta{margin-left:auto;color:var(--muted);font-size:11px;white-space:nowrap}.empty{padding:25px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:12px}
+.progress{height:8px;background:#26364b;border-radius:20px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:20px}
+.subject-row{display:flex;align-items:center;gap:12px;margin:14px 0}.subject-row .name{width:105px;font-size:13px}.subject-row .progress{flex:1;margin:0}.subject-row .pct{width:38px;text-align:right;font-size:12px;color:var(--muted)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted)}.field input,.field select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#0d1727;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--accent2)}.form-actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}.form-card{margin-bottom:17px}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+.pill{display:inline-block;padding:4px 8px;border-radius:30px;background:#23364a;color:var(--accent);font-size:10px;font-weight:700}.pill.warn{color:var(--yellow)}.pill.bad{color:var(--danger)}
+.review{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px;background:var(--panel2);border-radius:12px}.review strong{display:block;font-size:13px}.review small{color:var(--muted)}
+.notice{border:1px solid #36564f;background:#122a2b;color:#b7f1df;padding:13px 15px;border-radius:12px;font-size:12px;margin-bottom:16px}
+footer{color:var(--muted);font-size:11px;margin:25px 0 5px;text-align:center}
+.mobile-brand{display:none}.subtle{color:var(--muted);font-size:12px}.week-grid{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));gap:9px;overflow-x:auto;padding-bottom:5px}.day-col{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:125px}.day-col h3{font-size:12px;margin:0 0 9px;color:var(--accent)}.week-task{font-size:11px;padding:8px;background:#0d1727;border-radius:8px;margin:6px 0;overflow-wrap:anywhere}.week-task small{display:block;color:var(--muted)}.priority-card{border-left:3px solid var(--accent2)}.metric{font-size:25px;font-weight:750}.inline-fields{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.inline-fields .field{min-width:150px;flex:1}.table-wrap td{vertical-align:middle}.mobile-nav-hint{display:none}@media(max-width:900px){.week-grid{grid-template-columns:repeat(7,minmax(145px,1fr))}.nav button{font-size:11px;padding:9px}.sidebar{padding:8px}}@media(max-width:520px){.week-grid{grid-template-columns:repeat(7,minmax(135px,1fr))}.form-actions .btn{flex:1}.section-head{align-items:flex-start}.mobile-nav-hint{display:block}}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:sticky;top:0;z-index:5;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);gap:8px}.brand{display:none}.nav{display:flex;overflow-x:auto;gap:5px}.nav button{white-space:nowrap;padding:9px 11px;font-size:12px}.nav button.active{box-shadow:inset 0 -3px var(--accent)}.side-note{display:none}main{padding:23px 16px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
+@media(max-width:520px){.top{align-items:flex-start;flex-direction:column}.date{margin-top:-10px}.form-grid{grid-template-columns:1fr}.stat-value{font-size:24px}.card{padding:15px}.task-meta{display:none}}
+
+.auth-overlay{position:fixed;inset:0;z-index:20;background:rgba(5,10,18,.97);display:grid;place-items:center;padding:18px}.auth-box{width:min(100%,430px);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:25px}.auth-box h1{margin:0 0 6px}.auth-box p{color:var(--muted);font-size:13px}.auth-box input{width:100%;padding:12px;margin:7px 0;border-radius:10px;border:1px solid var(--line);background:#0d1727;color:var(--text)}.auth-actions{display:grid;gap:9px;margin-top:12px}.auth-status{font-size:12px;min-height:20px;color:var(--yellow)}.account-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.account-bar button{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:7px 10px;border-radius:9px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="brand" style="padding:0;margin-bottom:18px"><div class="logo">S</div><div><strong>StudyFlow</strong><small>SEU ESTUDO, EM FLUXO.</small></div></div>
+    <h1 id="authTitle">Entre na sua conta</h1>
+    <p>Crie sua conta ou entre para acessar seus estudos em diferentes dispositivos.</p>
+    <form id="authForm"><input id="authEmail" type="email" placeholder="Seu e-mail" autocomplete="email" required><input id="authPassword" type="password" placeholder="Senha (mínimo 6 caracteres)" autocomplete="current-password" minlength="6" required><div class="auth-actions"><button class="btn primary" id="authSubmit" type="submit">Entrar</button><button class="btn" id="authToggle" type="button">Criar uma conta</button><button class="btn ghost" id="authReset" type="button">Esqueci minha senha</button></div></form>
+    <div class="auth-status" id="authStatus" role="status">Conectando ao Firebase…</div>
+  </div>
+</div>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">S</div><div><strong>StudyFlow</strong><small>SEU ESTUDO, EM FLUXO.</small></div></div>
+  <nav class="nav">
+    <button class="active" data-view="dashboard">▦ <span>Visão geral</span></button>
+    <button data-view="planning">▤ <span>Planejamento</span></button>
+    <button data-view="weekly">▦ <span>Semana</span></button>
+    <button data-view="reviews">↻ <span>Revisões</span></button>
+    <button data-view="performance">◎ <span>Desempenho</span></button>
+    <button data-view="simulados">◷ <span>Simulados</span></button>
+    <button data-view="backup">⇧ <span>Dados e backup</span></button>
+  </nav>
+  <div class="side-note">✦ <b>Seu próximo passo:</b><br>cadastre matérias e conteúdos para começar a montar seu fluxo de estudos.</div>
+</aside>
+<main>
+  <header class="top"><div><div class="eyebrow">Painel do estudante</div><h1 id="greeting">Vamos estudar?</h1></div><div class="account-bar"><span class="date" id="today"></span><button id="logoutBtn" type="button">Sair da conta</button></div></header>
+
+  <section class="view active" id="dashboard">
+    <div class="notice">Bem-vindo ao StudyFlow. Comece cadastrando matérias e tarefas no Planejamento. Seus dados são sincronizados na sua conta StudyFlow quando há conexão com a internet.</div>
+    <div class="grid stats">
+      <div class="card"><div class="stat-label">Tarefas de hoje</div><div class="stat-value" id="todayTasks">0</div><div class="stat-foot">tarefas programadas</div></div>
+      <div class="card"><div class="stat-label">Concluídas</div><div class="stat-value accent" id="doneTasks">0</div><div class="stat-foot">tarefas finalizadas</div></div>
+      <div class="card"><div class="stat-label">Revisões pendentes</div><div class="stat-value" id="pendingReviews">0</div><div class="stat-foot">para hoje ou atrasadas</div></div>
+      <div class="card"><div class="stat-label">Aproveitamento</div><div class="stat-value blue" id="overallAccuracy">—</div><div class="stat-foot">nas questões registradas</div></div>
+    </div>
+    <div class="grid two">
+      <div class="card"><div class="section-head"><h2>Foco de hoje</h2><button class="btn ghost" data-go="planning">+ Planejar</button></div><div id="todayList" class="task-list"><div class="empty">Nenhuma tarefa para hoje. Que tal planejar seus estudos?</div></div></div>
+      <div class="card"><div class="section-head"><h2>Revisões em aberto</h2><button class="btn ghost" data-go="reviews">Ver todas</button></div><div id="dashboardReviews" class="item-list"><div class="empty">Nenhuma revisão pendente.</div></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="section-head"><h2>Seu aproveitamento por matéria</h2><span class="small muted">Questões registradas</span></div><div id="dashboardSubjects"><div class="empty">Registre questões para visualizar seu desempenho.</div></div></div>
+  </section>
+
+  <section class="view" id="planning">
+    <div class="section-head"><div><div class="eyebrow">Organize sua rotina</div><h2>Planejamento de estudos</h2></div></div>
+    <div class="card form-card"><div class="section-head"><h2>Cadastrar matéria</h2></div>
+      <form id="subjectForm"><div class="form-grid"><div class="field"><label>Matéria</label><input id="subjectName" placeholder="Ex.: Química" required></div><div class="field"><label>Prioridade inicial</label><select id="subjectPriority"><option>Alta</option><option selected>Média</option><option>Baixa</option></select></div><div class="field"><label>Dificuldade percebida</label><select id="subjectDifficulty"><option value="1">1 — Fácil</option><option value="2">2 — Moderada</option><option value="3" selected>3 — Difícil</option><option value="4">4 — Muito difícil</option><option value="5">5 — Tenho muita dificuldade</option></select></div></div><div class="form-actions"><button class="btn primary">Adicionar matéria</button></div></form>
+    </div>
+    <div class="card form-card"><div class="section-head"><h2>Configurações do ENEM</h2></div><div class="form-grid"><div class="field"><label>Data da prova (ou vestibular)</label><input id="examDate" type="date"></div><div class="field"><label>Meta semanal de estudo (horas)</label><input id="weeklyGoal" type="number" min="1" max="100" step="1" value="20"></div></div><div class="form-actions"><button class="btn" type="button" id="saveGoals">Salvar metas</button></div></div>
+    <div class="card form-card"><div class="section-head"><h2>Adicionar tarefa de estudo</h2></div>
+      <form id="taskForm"><div class="form-grid">
+        <div class="field"><label>Matéria</label><select id="taskSubject" required><option value="">Cadastre uma matéria primeiro</option></select></div>
+        <div class="field"><label>Conteúdo / atividade</label><input id="taskTitle" placeholder="Ex.: Estequiometria" required></div>
+        <div class="field"><label>Data</label><input id="taskDate" type="date" required></div>
+        <div class="field"><label>Tempo previsto (minutos)</label><input id="taskMinutes" type="number" min="5" step="5" value="50"></div>
+      </div><div class="form-actions"><button class="btn primary">Adicionar ao planejamento</button></div></form>
+    </div>
+    <div class="card"><div class="section-head"><h2>Prioridades recomendadas</h2><span class="small muted">Dificuldade + desempenho + prova</span></div><div id="priorityList" class="item-list"><div class="empty">Cadastre matérias e tarefas para receber recomendações.</div></div></div><div class="card" style="margin-top:16px"><div class="section-head"><h2>Minhas tarefas</h2><span class="small muted" id="taskCount">0 tarefas</span></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Matéria</th><th>Conteúdo</th><th>Tempo</th><th>Status</th><th></th></tr></thead><tbody id="taskTable"></tbody></table></div><div id="taskEmpty" class="empty">Suas tarefas aparecerão aqui.</div></div>
+  </section>
+
+  <section class="view" id="weekly">
+    <div class="section-head"><div><div class="eyebrow">Distribua seu esforço</div><h2>Cronograma semanal</h2></div><span class="pill" id="weekHours">0h estudadas</span></div>
+    <div class="card form-card"><div class="section-head"><h2>Meta de horas</h2><span class="subtle" id="goalLabel">Meta: 20h por semana</span></div><div class="progress"><span id="goalProgress" style="width:0%"></span></div><div class="subtle" id="goalDetail">Registre a duração das tarefas concluídas para acompanhar sua meta.</div></div>
+    <div class="card"><div class="section-head"><h2>Esta semana</h2><span class="subtle" id="weekRange"></span></div><div class="week-grid" id="weekGrid"></div></div>
+    <div class="card" style="margin-top:16px"><div class="section-head"><h2>Tarefas atrasadas</h2><button class="btn primary" id="rescheduleBtn">Reorganizar atrasadas</button></div><p class="subtle">As tarefas pendentes vencidas serão movidas para os próximos dias úteis, sem alterar as já concluídas.</p><div id="overdueList" class="item-list"></div></div>
+  </section>
+
+  <section class="view" id="reviews">
+    <div class="section-head"><div><div class="eyebrow">Memorize melhor</div><h2>Revisão inteligente</h2></div></div>
+    <div class="notice">Ao concluir uma tarefa de estudo, o StudyFlow agenda revisões sugeridas para 1, 7 e 30 dias depois. Os intervalos são uma estratégia inicial e podem ser personalizados em versões futuras.</div>
+    <div class="card"><div class="section-head"><h2>Revisões de hoje e atrasadas</h2><span class="pill warn" id="reviewCount">0 pendentes</span></div><div class="item-list" id="reviewList"><div class="empty">Nenhuma revisão pendente. Conclua uma tarefa de estudo para gerar revisões.</div></div></div>
+    <div class="card" style="margin-top:16px"><div class="section-head"><h2>Próximas revisões</h2></div><div class="item-list" id="upcomingReviews"></div></div>
+  </section>
+
+  <section class="view" id="performance">
+    <div class="section-head"><div><div class="eyebrow">Acompanhe sua evolução</div><h2>Questões e desempenho</h2></div></div>
+    <div class="card form-card"><div class="section-head"><h2>Registrar questões</h2></div>
+      <form id="quizForm"><div class="form-grid">
+        <div class="field"><label>Matéria</label><select id="quizSubject" required><option value="">Cadastre uma matéria primeiro</option></select></div>
+        <div class="field"><label>Assunto (opcional)</label><input id="quizTopic" placeholder="Ex.: Ligações químicas"></div>
+        <div class="field"><label>Questões feitas</label><input id="quizTotal" type="number" min="1" required placeholder="Ex.: 20"></div>
+        <div class="field"><label>Acertos</label><input id="quizCorrect" type="number" min="0" required placeholder="Ex.: 14"></div>
+      </div><div class="form-actions"><button class="btn primary">Salvar resultado</button></div></form>
+    </div>
+    <div class="grid stats">
+      <div class="card"><div class="stat-label">Questões resolvidas</div><div class="stat-value" id="totalQuestions">0</div></div>
+      <div class="card"><div class="stat-label">Acertos</div><div class="stat-value accent" id="totalCorrect">0</div></div>
+      <div class="card"><div class="stat-label">Erros</div><div class="stat-value" id="totalWrong">0</div></div>
+      <div class="card"><div class="stat-label">Aproveitamento geral</div><div class="stat-value blue" id="accuracy">—</div></div>
+    </div>
+    <div class="card"><div class="section-head"><h2>Desempenho por matéria</h2></div><div id="subjectPerformance"><div class="empty">Seus resultados aparecerão aqui.</div></div></div>
+    <div class="card" style="margin-top:16px"><div class="section-head"><h2>Histórico de registros</h2></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Matéria</th><th>Assunto</th><th>Questões</th><th>Acertos</th><th>%</th></tr></thead><tbody id="quizTable"></tbody></table></div><div id="quizEmpty" class="empty">Nenhum registro por enquanto.</div></div>
+  </section>
+
+  <section class="view" id="simulados">
+    <div class="section-head"><div><div class="eyebrow">Treine como no dia da prova</div><h2>Meus simulados</h2></div></div>
+    <div class="notice">Registre cada simulado para acompanhar seu ritmo e seu percentual de acertos ao longo da preparação.</div>
+    <div class="card form-card"><div class="section-head"><h2>Novo simulado</h2></div>
+      <form id="mockForm"><div class="form-grid">
+        <div class="field"><label>Nome da prova</label><input id="mockName" required maxlength="90" placeholder="Ex.: Simulado ENEM — Linguagens"></div>
+        <div class="field"><label>Tempo gasto (minutos)</label><input id="mockMinutes" type="number" min="1" max="1440" required placeholder="Ex.: 180"></div>
+        <div class="field"><label>Número de acertos</label><input id="mockCorrect" type="number" min="0" required value="0"></div>
+        <div class="field"><label>Número de erros</label><input id="mockWrong" type="number" min="0" required value="0"></div>
+      </div><div class="form-actions"><button class="btn primary">Salvar simulado</button></div></form>
+    </div>
+    <div class="grid stats"><div class="card"><div class="stat-label">Simulados realizados</div><div class="stat-value" id="mockCount">0</div></div><div class="card"><div class="stat-label">Questões respondidas</div><div class="stat-value" id="mockQuestions">0</div></div><div class="card"><div class="stat-label">Acertos totais</div><div class="stat-value accent" id="mockCorrectTotal">0</div></div><div class="card"><div class="stat-label">Aproveitamento geral</div><div class="stat-value blue" id="mockAccuracy">—</div></div></div>
+    <div class="card"><div class="section-head"><h2>Histórico de simulados</h2></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Prova</th><th>Tempo</th><th>Acertos</th><th>Erros</th><th>Percentual</th><th></th></tr></thead><tbody id="mockTable"></tbody></table></div><div id="mockEmpty" class="empty">Seus simulados registrados aparecerão aqui.</div></div>
+  </section>
+
+  <section class="view" id="backup">
+    <div class="section-head"><div><div class="eyebrow">Seus dados</div><h2>Backup e privacidade</h2></div></div>
+    <div class="notice">Seus registros são sincronizados com sua conta StudyFlow. Use a exportação JSON para manter uma cópia independente dos seus dados.</div>
+    <div class="card"><h2 style="margin-top:0">Exportar seus dados</h2><p class="muted small">Baixe um arquivo de backup com matérias, tarefas, revisões, resultados, simulados e metas.</p><button class="btn primary" id="exportBtn">⇩ Baixar backup (.json)</button></div>
+    <div class="card" style="margin-top:16px"><h2 style="margin-top:0">Importar backup</h2><p class="muted small">Restaure um arquivo de backup exportado anteriormente. Isso substituirá os dados atuais deste navegador.</p><input type="file" id="importFile" accept=".json,application/json"><div class="form-actions"><button class="btn" id="importBtn">Importar arquivo</button></div></div>
+    <div class="card" style="margin-top:16px"><h2 style="margin-top:0">Apagar todos os dados</h2><p class="muted small">Esta ação não pode ser desfeita. Exporte um backup antes, se quiser guardar seus registros.</p><button class="btn danger" id="clearBtn">Apagar meus dados</button></div>
+  </section>
+  <footer>StudyFlow • Seus estudos sincronizados na sua conta</footer>
+</main>
+</div>
+<script>
+const KEY='studyflow_v1';
+let data=load();
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY))||{};return {subjects:d.subjects||[],tasks:d.tasks||[],reviews:d.reviews||[],quizzes:d.quizzes||[],mocks:d.mocks||[],settings:{weeklyGoal:d.settings?.weeklyGoal||20,examDate:d.settings?.examDate||''}}}catch(e){return {subjects:[],tasks:[],reviews:[],quizzes:[],mocks:[],settings:{weeklyGoal:20,examDate:''}}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render();if(window.studyFlowCloudSave)window.studyFlowCloudSave(data)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function iso(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function addDays(date,n){let d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)}
+function fmt(date){if(!date)return '—';return new Date(date+'T12:00:00').toLocaleDateString('pt-BR')}
+function subjectName(id){return data.subjects.find(s=>s.id===id)?.name||'Matéria removida'}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function weekStart(d=new Date()){let x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function dateFrom(d){return iso(d)}
+function priorityScore(subject){const qs=data.quizzes.filter(q=>q.subjectId===subject.id);const total=qs.reduce((a,q)=>a+Number(q.total||0),0),correct=qs.reduce((a,q)=>a+Number(q.correct||0),0);const accuracy=total?correct/total:0.5;const difficulty=Number(subject.difficulty||3);const urgency=data.settings.examDate?Math.max(0,1-(new Date(data.settings.examDate+'T12:00:00')-new Date())/(180*86400000)):0.35;return difficulty*10+(1-accuracy)*35+urgency*20+(subject.priority==='Alta'?8:subject.priority==='Média'?4:0)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function go(view){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===view));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+document.getElementById('today').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('greeting').textContent=(new Date().getHours()<12?'Bom dia!':new Date().getHours()<18?'Boa tarde!':'Boa noite!')+' Vamos estudar?';
+document.getElementById('taskDate').value=iso();
+
+document.getElementById('subjectForm').addEventListener('submit',e=>{e.preventDefault();let name=document.getElementById('subjectName').value.trim();if(!name)return;if(data.subjects.some(s=>s.name.toLowerCase()===name.toLowerCase())){alert('Essa matéria já está cadastrada.');return}data.subjects.push({id:uid(),name,priority:document.getElementById('subjectPriority').value,difficulty:Number(document.getElementById('subjectDifficulty').value)});e.target.reset();save()});
+document.getElementById('taskForm').addEventListener('submit',e=>{e.preventDefault();let subjectId=document.getElementById('taskSubject').value;if(!subjectId){alert('Cadastre uma matéria primeiro.');return}data.tasks.push({id:uid(),subjectId,title:document.getElementById('taskTitle').value.trim(),date:document.getElementById('taskDate').value,minutes:Number(document.getElementById('taskMinutes').value)||50,done:false});e.target.reset();document.getElementById('taskDate').value=iso();save()});
+document.getElementById('quizForm').addEventListener('submit',e=>{e.preventDefault();let total=Number(document.getElementById('quizTotal').value),correct=Number(document.getElementById('quizCorrect').value);if(correct>total){alert('Os acertos não podem ser maiores que o total de questões.');return}data.quizzes.push({id:uid(),date:iso(),subjectId:document.getElementById('quizSubject').value,topic:document.getElementById('quizTopic').value.trim(),total,correct});e.target.reset();save()});
+document.getElementById('saveGoals').addEventListener('click',()=>{data.settings.weeklyGoal=Math.max(1,Math.min(100,Number(document.getElementById('weeklyGoal').value)||20));data.settings.examDate=document.getElementById('examDate').value;save();alert('Metas atualizadas!')});
+document.getElementById('mockForm').addEventListener('submit',e=>{e.preventDefault();const correct=Number(document.getElementById('mockCorrect').value),wrong=Number(document.getElementById('mockWrong').value),minutes=Number(document.getElementById('mockMinutes').value);if(correct+wrong<1){alert('Informe pelo menos uma questão respondida.');return}data.mocks.push({id:uid(),date:iso(),name:document.getElementById('mockName').value.trim(),minutes,correct,wrong});e.target.reset();document.getElementById('mockCorrect').value=0;document.getElementById('mockWrong').value=0;save()});
+document.getElementById('rescheduleBtn').addEventListener('click',()=>{const today=iso(),late=data.tasks.filter(t=>!t.done&&t.date<today);if(!late.length){alert('Você não tem tarefas atrasadas.');return}if(!confirm('Reorganizar '+late.length+' tarefa(s) atrasada(s) nos próximos dias úteis?'))return;let cursor=new Date();cursor.setDate(cursor.getDate()+1);late.sort((a,b)=>a.date.localeCompare(b.date));late.forEach((t,i)=>{while(cursor.getDay()===0||cursor.getDay()===6)cursor.setDate(cursor.getDate()+1);t.date=iso(cursor);cursor.setDate(cursor.getDate()+1)});save()});
+function toggleTask(id){let t=data.tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;if(t.done){[1,7,30].forEach((days,i)=>data.reviews.push({id:uid(),taskId:t.id,subjectId:t.subjectId,title:t.title,due:addDays(iso(),days),step:i+1,done:false}))}else{data.reviews=data.reviews.filter(r=>r.taskId!==id)}save()}
+function finishReview(id){let r=data.reviews.find(x=>x.id===id);if(r)r.done=true;save()}
+function deleteMock(id){if(!confirm('Excluir este simulado?'))return;data.mocks=data.mocks.filter(m=>m.id!==id);save()}
+function deleteTask(id){if(!confirm('Excluir esta tarefa e suas revisões?'))return;data.tasks=data.tasks.filter(t=>t.id!==id);data.reviews=data.reviews.filter(r=>r.taskId!==id);save()}
+function render(){
+ const today=iso(),pending=data.reviews.filter(r=>!r.done&&r.due<=today);
+ const todayTasks=data.tasks.filter(t=>t.date===today);
+ document.getElementById('todayTasks').textContent=todayTasks.length;
+ document.getElementById('doneTasks').textContent=todayTasks.filter(t=>t.done).length;
+ document.getElementById('pendingReviews').textContent=pending.length;
+ let qtotal=data.quizzes.reduce((a,q)=>a+q.total,0),qcorrect=data.quizzes.reduce((a,q)=>a+q.correct,0);
+ document.getElementById('overallAccuracy').textContent=qtotal?pct(qcorrect,qtotal)+'%':'—';
+ document.getElementById('todayList').innerHTML=todayTasks.length?todayTasks.map(t=>`<label class="task ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')"><span class="task-name"><b>${esc(t.title)}</b><br><span class="small muted">${esc(subjectName(t.subjectId))}</span></span><span class="task-meta">${t.minutes} min</span></label>`).join(''):'<div class="empty">Nenhuma tarefa para hoje. Que tal planejar seus estudos?</div>';
+ document.getElementById('dashboardReviews').innerHTML=pending.slice(0,4).map(r=>`<div class="review"><div><strong>${esc(r.title)}</strong><small>${esc(subjectName(r.subjectId))} · ${fmt(r.due)}</small></div><span class="pill warn">Pendente</span></div>`).join('')||'<div class="empty">Nenhuma revisão pendente.</div>';
+ const subjectsHtml=data.subjects.map(s=>{let qs=data.quizzes.filter(q=>q.subjectId===s.id),tot=qs.reduce((a,q)=>a+q.total,0),cor=qs.reduce((a,q)=>a+q.correct,0),p=pct(cor,tot);return `<div class="subject-row"><span class="name">${esc(s.name)}</span><div class="progress"><span style="width:${p}%"></span></div><span class="pct">${tot?p+'%':'—'}</span></div>`}).join('');
+ document.getElementById('dashboardSubjects').innerHTML=subjectsHtml||'<div class="empty">Cadastre matérias e registre questões para acompanhar sua evolução.</div>';
+ document.getElementById('taskSubject').innerHTML=options();document.getElementById('quizSubject').innerHTML=options();
+ document.getElementById('taskTable').innerHTML=data.tasks.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>`<tr><td>${fmt(t.date)}</td><td>${esc(subjectName(t.subjectId))}</td><td>${esc(t.title)}</td><td>${t.minutes} min</td><td><span class="pill ${t.done?'':'warn'}">${t.done?'Concluída':'Pendente'}</span></td><td><button class="btn ghost danger" onclick="deleteTask('${t.id}')">Excluir</button></td></tr>`).join('');
+ document.getElementById('taskEmpty').style.display=data.tasks.length?'none':'block';document.getElementById('taskCount').textContent=data.tasks.length+' tarefas';
+ document.getElementById('reviewCount').textContent=pending.length+' pendentes';
+ document.getElementById('reviewList').innerHTML=pending.map(r=>`<div class="review"><div><strong>${esc(r.title)}</strong><small>${esc(subjectName(r.subjectId))} · Revisão ${r.step} · ${fmt(r.due)}</small></div><button class="btn primary" onclick="finishReview('${r.id}')">Concluir</button></div>`).join('')||'<div class="empty">Nenhuma revisão pendente. Conclua uma tarefa de estudo para gerar revisões.</div>';
+ let upcoming=data.reviews.filter(r=>!r.done&&r.due>today).sort((a,b)=>a.due.localeCompare(b.due));
+ document.getElementById('upcomingReviews').innerHTML=upcoming.map(r=>`<div class="review"><div><strong>${esc(r.title)}</strong><small>${esc(subjectName(r.subjectId))} · Revisão ${r.step}</small></div><span class="pill">${fmt(r.due)}</span></div>`).join('')||'<div class="empty">Nenhuma revisão futura agendada.</div>';
+ document.getElementById('totalQuestions').textContent=qtotal;document.getElementById('totalCorrect').textContent=qcorrect;document.getElementById('totalWrong').textContent=qtotal-qcorrect;document.getElementById('accuracy').textContent=qtotal?pct(qcorrect,qtotal)+'%':'—';
+ document.getElementById('subjectPerformance').innerHTML=subjectsHtml||'<div class="empty">Seus resultados aparecerão aqui.</div>';
+ document.getElementById('quizTable').innerHTML=data.quizzes.slice().reverse().map(q=>`<tr><td>${fmt(q.date)}</td><td>${esc(subjectName(q.subjectId))}</td><td>${esc(q.topic||'—')}</td><td>${q.total}</td><td>${q.correct}</td><td>${pct(q.correct,q.total)}%</td></tr>`).join('');
+ document.getElementById('quizEmpty').style.display=data.quizzes.length?'none':'block';
+ // weekly goals and calendar
+ document.getElementById('weeklyGoal').value=data.settings.weeklyGoal;document.getElementById('examDate').value=data.settings.examDate||'';
+ const start=weekStart(),days=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];let weekTasks=0,weekMinutes=0;
+ document.getElementById('weekGrid').innerHTML=days.map((day,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const key=iso(d),items=data.tasks.filter(t=>t.date===key);weekTasks+=items.length;weekMinutes+=items.filter(t=>t.done).reduce((a,t)=>a+Number(t.minutes||0),0);return `<div class="day-col"><h3>${day} · ${d.getDate()}/${d.getMonth()+1}</h3>${items.map(t=>`<div class="week-task">${esc(t.title)}<small>${esc(subjectName(t.subjectId))} · ${t.minutes} min ${t.done?'✓':''}</small></div>`).join('')||'<span class="subtle">Sem tarefas</span>'}</div>`}).join('');
+ const hours=weekMinutes/60,goal=Number(data.settings.weeklyGoal)||20;document.getElementById('weekHours').textContent=hours.toFixed(1)+'h concluídas';document.getElementById('goalLabel').textContent='Meta: '+goal+'h por semana';document.getElementById('goalProgress').style.width=Math.min(100,hours/goal*100)+'%';document.getElementById('goalDetail').textContent=hours.toFixed(1)+'h de '+goal+'h · '+Math.max(0,goal-hours).toFixed(1)+'h restantes';document.getElementById('weekRange').textContent=fmt(iso(start))+' – '+fmt(iso(new Date(start.getFullYear(),start.getMonth(),start.getDate()+6)));
+ const overdue=data.tasks.filter(t=>!t.done&&t.date<today).sort((a,b)=>a.date.localeCompare(b.date));document.getElementById('overdueList').innerHTML=overdue.map(t=>`<div class="review"><div><strong>${esc(t.title)}</strong><small>${esc(subjectName(t.subjectId))} · vencida em ${fmt(t.date)}</small></div><span class="pill bad">Atrasada</span></div>`).join('')||'<div class="empty">Nenhuma tarefa atrasada. Tudo em dia!</div>';
+ const ranked=data.subjects.map(s=>({...s,score:priorityScore(s)})).sort((a,b)=>b.score-a.score).slice(0,5);document.getElementById('priorityList').innerHTML=ranked.map(s=>{const qs=data.quizzes.filter(q=>q.subjectId===s.id),tot=qs.reduce((a,q)=>a+q.total,0),cor=qs.reduce((a,q)=>a+q.correct,0);return `<div class="review priority-card"><div><strong>${esc(s.name)}</strong><small>Dificuldade ${s.difficulty||3}/5 · Aproveitamento ${tot?pct(cor,tot)+'%':'sem dados'} · Prioridade ${s.priority||'Média'}</small></div><span class="pill warn">Índice ${Math.round(s.score)}</span></div>`}).join('')||'<div class="empty">Cadastre matérias para ver a ordem sugerida.</div>';
+ const mocks=data.mocks||[],mTotal=mocks.reduce((a,m)=>a+m.correct+m.wrong,0),mCorrect=mocks.reduce((a,m)=>a+m.correct,0);document.getElementById('mockCount').textContent=mocks.length;document.getElementById('mockQuestions').textContent=mTotal;document.getElementById('mockCorrectTotal').textContent=mCorrect;document.getElementById('mockAccuracy').textContent=mTotal?pct(mCorrect,mTotal)+'%':'—';document.getElementById('mockTable').innerHTML=mocks.slice().reverse().map(m=>`<tr><td>${fmt(m.date)}</td><td>${esc(m.name)}</td><td>${m.minutes} min</td><td>${m.correct}</td><td>${m.wrong}</td><td><b>${pct(m.correct,m.correct+m.wrong)}%</b></td><td><button class="btn ghost danger" onclick="deleteMock('${m.id}')">Excluir</button></td></tr>`).join('');document.getElementById('mockEmpty').style.display=mocks.length?'none':'block';
+}
+function options(){return '<option value="">Selecione uma matéria</option>'+data.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}
+document.getElementById('exportBtn').addEventListener('click',()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='studyflow-backup-'+iso()+'.json';a.click();URL.revokeObjectURL(a.href)});
+document.getElementById('importBtn').addEventListener('click',()=>{let f=document.getElementById('importFile').files[0];if(!f){alert('Selecione um arquivo JSON.');return}let reader=new FileReader();reader.onload=()=>{try{let x=JSON.parse(reader.result);if(!Array.isArray(x.subjects)||!Array.isArray(x.tasks)||!Array.isArray(x.reviews)||!Array.isArray(x.quizzes))throw Error();x.mocks=x.mocks||[];x.settings=x.settings||{weeklyGoal:20,examDate:''};if(!confirm('Importar substituirá seus dados atuais. Continuar?'))return;data=x;save();alert('Backup importado com sucesso.')}catch(e){alert('Arquivo inválido ou incompatível.')}};reader.readAsText(f)});
+document.getElementById('clearBtn').addEventListener('click',()=>{if(confirm('Tem certeza? Todos os seus dados serão apagados deste navegador.')){data={subjects:[],tasks:[],reviews:[],quizzes:[],mocks:[],settings:{weeklyGoal:20,examDate:''}};save()}});
+window.getStudyFlowData=()=>data;
+window.setStudyFlowData=(next)=>{data={subjects:next.subjects||[],tasks:next.tasks||[],reviews:next.reviews||[],quizzes:next.quizzes||[],mocks:next.mocks||[],settings:{weeklyGoal:next.settings?.weeklyGoal||20,examDate:next.settings?.examDate||''}};localStorage.setItem(KEY,JSON.stringify(data));render()};
+render();
+</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+const firebaseConfig = {
+ apiKey: 'AIzaSyCfkhYwGo76U0AzuSnqHRZxQ6dqTBd2u5Y',
+ authDomain: 'studyflow-75aa4.firebaseapp.com',
+ projectId: 'studyflow-75aa4',
+ storageBucket: 'studyflow-75aa4.firebasestorage.app',
+ messagingSenderId: '867204165578',
+ appId: '1:867204165578:web:f0a3447636acdd12dae933',
+ measurementId: 'G-E28CP87ZHP'
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const overlay=document.getElementById('authOverlay'),form=document.getElementById('authForm'),email=document.getElementById('authEmail'),password=document.getElementById('authPassword'),status=document.getElementById('authStatus'),submit=document.getElementById('authSubmit'),toggle=document.getElementById('authToggle');
+let creating=false,currentUid=null,saveTimer=null,loadingCloud=false;
+function say(message){status.textContent=message}
+toggle.addEventListener('click',()=>{creating=!creating;document.getElementById('authTitle').textContent=creating?'Criar sua conta':'Entre na sua conta';submit.textContent=creating?'Criar conta':'Entrar';toggle.textContent=creating?'Já tenho uma conta':'Criar uma conta';say('')});
+form.addEventListener('submit',async e=>{e.preventDefault();submit.disabled=true;say('Aguarde…');try{if(creating)await createUserWithEmailAndPassword(auth,email.value.trim(),password.value);else await signInWithEmailAndPassword(auth,email.value.trim(),password.value)}catch(err){say(err.code==='auth/email-already-in-use'?'Este e-mail já tem uma conta. Entre nela.':err.code==='auth/invalid-credential'?'E-mail ou senha incorretos.':err.code==='auth/weak-password'?'A senha precisa ter pelo menos 6 caracteres.':err.message)}finally{submit.disabled=false}});
+document.getElementById('authReset').addEventListener('click',async()=>{if(!email.value.trim()){say('Digite seu e-mail para receber o link de recuperação.');return}try{await sendPasswordResetEmail(auth,email.value.trim());say('Enviamos um link de recuperação para seu e-mail.')}catch(err){say(err.message)}});
+document.getElementById('logoutBtn').addEventListener('click',()=>signOut(auth));
+window.studyFlowCloudSave=(nextData)=>{
+ if(!currentUid||loadingCloud)return;
+ const saveUid=currentUid;
+ const snapshot=JSON.parse(JSON.stringify(nextData));
+ clearTimeout(saveTimer);
+ saveTimer=setTimeout(async()=>{
+  // Never let a delayed save from one account write into another account.
+  if(!saveUid||currentUid!==saveUid||loadingCloud)return;
+  try{await setDoc(doc(db,'users',saveUid,'appData','main'),{data:snapshot,updatedAt:serverTimestamp()})}
+  catch(err){console.error(err);say('Não foi possível sincronizar agora. Seus dados continuam neste navegador.')}
+ },700);
+};
+onAuthStateChanged(auth,async user=>{
+ // Cancel any pending write before changing the active account.
+ clearTimeout(saveTimer);saveTimer=null;
+ loadingCloud=true;
+ currentUid=null;
+ overlay.style.display='grid';
+ if(!user){loadingCloud=false;say('Entre ou crie sua conta para continuar.');return}
+ const targetUid=user.uid;
+ try{
+  const ref=doc(db,'users',targetUid,'appData','main'),snap=await getDoc(ref);
+  // Ignore a late response if the signed-in account changed while Firestore was loading.
+  if(auth.currentUser?.uid!==targetUid)return;
+  if(snap.exists()&&snap.data().data){
+   window.setStudyFlowData(snap.data().data);
+  }else{
+   // A genuinely new account starts empty; browser cache is never imported.
+   const empty={subjects:[],tasks:[],reviews:[],quizzes:[],mocks:[],settings:{weeklyGoal:20,examDate:''}};
+   window.setStudyFlowData(empty);
+   await setDoc(ref,{data:empty,updatedAt:serverTimestamp()});
+   if(auth.currentUser?.uid!==targetUid)return;
+  }
+  currentUid=targetUid;
+  loadingCloud=false;
+  overlay.style.display='none';
+  say('Dados sincronizados.');
+ }catch(err){
+  console.error(err);
+  if(auth.currentUser?.uid===targetUid){currentUid=null;loadingCloud=false;overlay.style.display='grid';say('Não foi possível acessar seus dados. Confira as regras do Firestore e tente novamente.')}
+ }
+});
+</script>
+</body></html>
